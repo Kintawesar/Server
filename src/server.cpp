@@ -1,4 +1,5 @@
 #include "server.h"
+#include <thread>
 
 Server::Server(const std::string &address, const std::string &port, IHandler &handler) :
     service(),
@@ -18,8 +19,19 @@ Server::Server(const std::string &address, const std::string &port, IHandler &ha
 
     acceptor.open(endpoint.protocol());
     acceptor.set_option(ip::tcp::acceptor::reuse_address(true));
-    acceptor.bind(endpoint);
+    try
+    {
+        acceptor.bind(endpoint);
+    }
+    catch( std::exception &e)
+    {
+        std::cerr << "Can't bind "<<e.what() << std::endl;
+        return;
+    }
+
     acceptor.listen();
+
+    std::cout<<"server bind on " <<address <<" port "<<port <<std::endl;
 
     doAccept();
 
@@ -27,9 +39,34 @@ Server::Server(const std::string &address, const std::string &port, IHandler &ha
 
 void Server::run()
 {
-    std::cout<<"server started "<<std::endl;
-    service.run();
+    unsigned int thread_count = 4; //std::thread::hardware_concurrency();
 
+    std::vector<std::shared_ptr<std::thread>> threads;
+    for(unsigned i = 0; i< thread_count; ++i)
+    {
+        std::shared_ptr<std::thread> thr(new std::thread([this]()
+        {
+         service.run();
+
+        }));
+
+        threads.push_back(thr);
+    }
+
+    std::cout<<"server started on " << thread_count <<" threads "<<std::endl;
+
+
+
+    //service.run();
+
+    for (unsigned i = 0; i < threads.size(); ++i)
+       threads[i]->join();
+
+}
+
+void Server::stop()
+{
+    service.stop();
 }
 
 void Server::doAwaitStop()
@@ -53,7 +90,7 @@ void Server::doAccept()
         if(!ec)
         {
             std::cout<<"new client accepted"<<std::endl;
-            manager.start( std::make_shared<Connection>( std::move(socket), manager, handler) );
+            manager.start( std::make_shared<Connection>(service, std::move(socket), manager, handler) );
 
         }
 

@@ -1,7 +1,7 @@
 project(server)
 cmake_minimum_required(VERSION 2.8)
 aux_source_directory(./src SRC_LIST)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 -Wall -Wextra -Woverloaded-virtual -Wunreachable-code -pedantic -lrt -lpthread -lboost_thread")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 -Wall -Wextra -Woverloaded-virtual -Wunreachable-code -pedantic -lrt -pthread")
 
 
 set(Boost_USE_STATIC_LIBS ON)

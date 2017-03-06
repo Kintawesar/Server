@@ -10,12 +10,13 @@
 using namespace boost::asio;
 
 
-class Server
+class Server final
 {
 public:
     explicit Server(const std::string &address, const std::string &port, IHandler &handler);
 
     void run();
+    void stop();
 
     Server(const Server &) = delete;
     Server& operator=(const Server &) = delete;
@@ -24,6 +25,7 @@ public:
 private:
     void doAwaitStop();
     void doAccept();
+
 
     io_service service;
     signal_set signal;

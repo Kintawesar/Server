@@ -13,9 +13,12 @@ public:
     bool recvCallback(const std::string &buffer) override;
     std::string nextMessage() override;
     bool hasNext() override;
+    void setMessageSize(const size_t s) override;
 
 private:
-    std::queue<std::string> echoQueue;
+    size_t messageSize;
+    std::string msg;
+    //std::queue<std::string> echoQueue;
 
 };
 

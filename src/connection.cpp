@@ -1,6 +1,7 @@
 #include "connection.h"
 
-Connection::Connection(ip::tcp::socket socket, ConnectionManager &manager, IHandler &handler) :
+Connection::Connection(io_service &service, ip::tcp::socket socket, ConnectionManager &manager, IHandler &handler) :
+    strand(service),
     socket(std::move(socket)),
     manager(manager),
     handler(handler)
@@ -14,7 +15,21 @@ Connection::~Connection()
 
 void Connection::start()
 {
-    doRead();
+    const size_t header_size = 4;
+    char header[header_size];
+
+    auto self = shared_from_this();
+    boost::asio::async_read(socket, buffer(header,header_size),
+                            strand.wrap([header, this, self](boost::system::error_code ec, size_t)
+    {
+        if(!ec)
+        {
+            this->handler.setMessageSize(std::atoi(header));
+            doRead();
+        }
+
+    }));
+       //
 }
 
 void Connection::stop()
@@ -27,8 +42,9 @@ void Connection::doRead()
 {
     auto self = shared_from_this();
 
+
     socket.async_read_some(buffer(socket_buffer),
-                           [this, self](boost::system::error_code ec, size_t)
+                           strand.wrap([this, self](boost::system::error_code ec, size_t)
     {
         if(!ec)
         {
@@ -40,7 +56,7 @@ void Connection::doRead()
         else if( ec != error::operation_aborted)
             manager.stop(self);
 
-    });
+    }));
 
 }
 
@@ -59,10 +75,10 @@ void Connection::doWrite()
         doRead();
         return;
     }
-    std::cout<<"next messge is "<<s<<std::endl;
+   // std::cout<<"next messge is "<<s<<std::endl;
 
     socket.async_write_some(buffer(s.data(), s.length()),
-                            [this, self](boost::system::error_code ec, size_t )
+                            strand.wrap([this, self](boost::system::error_code ec, size_t )
     {
        if(!ec)
        {
@@ -71,7 +87,7 @@ void Connection::doWrite()
 
        if(ec != error::operation_aborted)
            manager.stop(self);
-    });
+    }));
 
 
 

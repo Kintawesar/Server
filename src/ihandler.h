@@ -11,6 +11,7 @@ public:
     virtual bool recvCallback(const std::string &buffer) = 0;
     virtual std::string nextMessage() = 0;
     virtual bool hasNext() = 0;
+    virtual void setMessageSize(const size_t s) = 0;
 };
 
 #endif // IHANDLER

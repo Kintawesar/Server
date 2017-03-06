@@ -18,7 +18,7 @@ public:
     Connection(const Connection &) = delete;
     Connection& operator=(const Connection &) = delete;
 
-    explicit Connection(ip::tcp::socket socket, ConnectionManager &manager, IHandler &handler);
+    explicit Connection(io_service &service , ip::tcp::socket socket, ConnectionManager &manager, IHandler &handler);
     ~Connection();
 
     void start();
@@ -29,6 +29,7 @@ private:
    void doWrite();
 
 
+   io_service::strand strand;
    ip::tcp::socket socket;
    ConnectionManager &manager;
    IHandler &handler;

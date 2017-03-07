@@ -28,6 +28,9 @@ private:
    void doRead();
    void doWrite();
 
+   std::string buf;
+   boost::asio::streambuf from;
+
 
    io_service::strand strand;
    ip::tcp::socket socket;
@@ -37,6 +40,7 @@ private:
    std::array<char ,8192> socket_buffer;
 
 
+   std::string makeString(boost::asio::streambuf &buf);
 };
 
 
